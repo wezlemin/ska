@@ -1,3 +1,4 @@
+## Note: Yes, this is made by ChatGPT. A bot managed to figure it out and make all this - Crazy!
 
 # Ska - Front-End for Chemsheets/Scisheets
 
