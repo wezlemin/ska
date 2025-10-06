@@ -3,191 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Display</title>
+  <title>PDF Viewer</title>
   <style>
+    /* Global styling */
     body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
     }
-    .container {
-      width: 80%;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: white;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+    /* Container for PDFs */
+    .pdf-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        margin: 20px;
     }
-    h1 {
-      text-align: center;
-      color: #333;
+
+    /* Individual PDF card styling */
+    .pdf-card {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        width: 200px;
+        margin: 10px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
     }
-    .pdf-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
+
+    .pdf-card img {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
     }
-    .pdf-item {
-      background-color: #f9f9f9;
-      border-radius: 5px;
-      overflow: hidden;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      padding: 10px;
-      text-align: center;
+
+    .pdf-card p {
+        font-size: 16px;
+        color: #333;
+        margin-top: 10px;
     }
-    .pdf-item img {
-      max-width: 100%;
-      height: auto;
-      border-bottom: 1px solid #ddd;
-    }
-    .pdf-item h3 {
-      margin: 10px 0;
-      font-size: 18px;
-      color: #333;
-    }
-    .pdf-item a {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 8px 16px;
-      background-color: #007BFF;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-    .pdf-item a:hover {
-      background-color: #0056b3;
-    }
+
+    /* Pagination styling */
     .pagination {
-      text-align: center;
-      margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
     }
-    .pagination input {
-      width: 80px;
-      padding: 8px;
-      text-align: center;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-      font-size: 16px;
-      margin: 0 10px;
+
+    .pagination input[type="number"] {
+        width: 50px;
+        padding: 5px;
+        margin: 0 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 16px;
     }
+
     .pagination button {
-      padding: 8px 16px;
-      margin: 0 5px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
     }
+
     .pagination button:hover {
-      background-color: #0056b3;
+        background-color: #0056b3;
     }
-    .pagination .inactive {
-      background-color: #ccc;
-      cursor: not-allowed;
+
+    /* Loading indicator */
+    .loading {
+        text-align: center;
+        font-size: 18px;
+        color: #007bff;
+    }
+
+    /* Page information styling */
+    .page-info {
+        font-size: 16px;
+        margin: 10px;
+        text-align: center;
+        color: #333;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>PDF List</h1>
-    <div class="pdf-list" id="pdf-list"></div>
-    <div class="pagination" id="pagination">
-      <button id="prevButton">Previous</button>
-      <input type="number" id="pageInput" min="1" />
-      <button id="nextButton">Next</button>
-    </div>
-  </div>
+  <div class="pdf-container" id="pdf-list"></div>
+  <div class="pagination" id="pagination-container"></div>
+  <div class="page-info" id="page-info"></div>
 
   <script>
-    const pdfsPerPage = 10; // Number of PDFs to show per page
-    let currentPage = 1; // Current page number
-    let totalPages = 0; // Total pages to display
-    let totalItems = 0; // Total number of items from the API
+    const perPage = 10;
+    let currentPage = 1;
+    let maxPages = 1;
+    let totalItems = 0;
 
-    // Function to fetch PDF data from API
+    // Fetch data from API
     async function fetchPDFs(page = 1) {
-      const response = await fetch(`https://www.scisheets.co.uk/wp-json/wp/v2/media?per_page=${pdfsPerPage}&page=${page}`);
+      const url = `https://www.scisheets.co.uk/wp-json/wp/v2/media?per_page=${perPage}&page=${page}`;
+      const response = await fetch(url);
+
+      // Retrieve the total count from the response headers
+      const total = response.headers.get('X-WP-Total');
+      totalItems = parseInt(total, 10);
+
+      // Update the maxPages based on the total items
+      maxPages = Math.ceil(totalItems / perPage);
+
       const data = await response.json();
-      
-      // Calculate total pages and items based on the 'X-WP-Total' header
-      totalItems = parseInt(response.headers.get('X-WP-Total'), 10);
-      totalPages = Math.ceil(totalItems / pdfsPerPage);
-      
-      // Display the fetched PDFs
+
+      // Handle the pagination and display of PDFs
       displayPDFs(data);
-      
-      // Update pagination input field
-      updatePagination();
+      updatePageInfo();
+      createPagination(); // Ensure pagination is created after fetching data
     }
 
-    // Function to display PDFs on the page
-    function displayPDFs(pdfs) {
-      const pdfListElement = document.getElementById('pdf-list');
-      pdfListElement.innerHTML = ''; // Clear previous results
+    // Display PDFs
+    async function displayPDFs(pdfs) {
+      const container = document.getElementById('pdf-list');
+      container.innerHTML = ''; // Clear previous content
+
+      if (pdfs.length === 0) {
+        container.innerHTML = "<p>No files found on this page.</p>";
+        return;
+      }
 
       pdfs.forEach(pdf => {
-        const pdfItem = document.createElement('div');
-        pdfItem.classList.add('pdf-item');
+        // Check file type: PDF, PPTX, or others (adjust as needed)
+  
+          const pdfItem = document.createElement('div');
+          pdfItem.classList.add('pdf-item');
 
-        const thumbnail = pdf.media_details.sizes.medium.source_url;
-        const pdfTitle = pdf.title.rendered;
-        const pdfLink = pdf.source_url;
+          // Use the provided default image for all files
+          const defaultThumbnail = 'https://image2url.com/images/1758150036537-c930c707-ac22-4dec-a483-5fb0f98c13e2.png';
 
-        pdfItem.innerHTML = `
-          <img src="${thumbnail}" alt="${pdfTitle}" />
-          <h3>${pdfTitle}</h3>
-          <a href="${pdfLink}" target="_blank">View PDF</a>
-        `;
+          // Build the HTML structure for each item
+          pdfItem.innerHTML = `
+            <a href="${pdf.source_url}" target="_blank">
+              <img src="${defaultThumbnail}" alt="${pdf.title.rendered}" />
+            </a>
+            <p>${pdf.title.rendered}</p>
+          `;
 
-        pdfListElement.appendChild(pdfItem);
+          // Append the item to the container
+          container.appendChild(pdfItem);
+        
       });
     }
 
-    // Function to update pagination input field and buttons
-    function updatePagination() {
-      const pageInput = document.getElementById('pageInput');
-      pageInput.value = currentPage; // Set current page number in the input
-      pageInput.max = totalPages; // Set max value of the input field to totalPages
-
-      // Disable Previous and Next buttons if on the first or last page
-      document.getElementById('prevButton').disabled = currentPage === 1;
-      document.getElementById('nextButton').disabled = currentPage === totalPages;
+    // Add pagination controls
+    function createPagination() {
+      const paginationContainer = document.getElementById('pagination-container');
+      paginationContainer.innerHTML = `
+        <button onclick="changePage('prev')">Previous</button>
+        <input type="number" id="page-input" value="${currentPage}" min="1" max="${maxPages}" onchange="goToPage()" />
+        <button onclick="changePage('next')">Next</button>
+      `;
     }
 
-    // Function to handle the page input change
-    function handlePageInputChange() {
-      const pageInput = document.getElementById('pageInput');
-      let newPage = parseInt(pageInput.value);
-
-      if (newPage >= 1 && newPage <= totalPages) {
-        currentPage = newPage;
-        fetchPDFs(currentPage); // Fetch the new page data
-      } else {
-        pageInput.value = currentPage; // Reset to the current page if the number is out of range
-      }
+    // Update page info (display total pages and current page)
+    function updatePageInfo() {
+      const pageInfo = document.getElementById('page-info');
+      pageInfo.innerHTML = `Page ${currentPage} of ${maxPages} (Total Items: ${totalItems})`;
     }
 
-    // Setup event listeners for Previous and Next buttons
-    document.getElementById('prevButton').addEventListener('click', () => {
-      if (currentPage > 1) {
+    // Change page (Previous/Next)
+    function changePage(direction) {
+      if (direction === 'prev' && currentPage > 1) {
         currentPage--;
-        fetchPDFs(currentPage);
-      }
-    });
-
-    document.getElementById('nextButton').addEventListener('click', () => {
-      if (currentPage < totalPages) {
+      } else if (direction === 'next' && currentPage < maxPages) {
         currentPage++;
-        fetchPDFs(currentPage);
       }
-    });
+      document.getElementById('page-input').value = currentPage;
+      fetchPDFs(currentPage);
+    }
 
-    // Setup event listener for the page input
-    document.getElementById('pageInput').addEventListener('change', handlePageInputChange);
+    // Go to a specific page
+    function goToPage() {
+      const inputPage = document.getElementById('page-input').value;
+      const pageNum = parseInt(inputPage);
+      if (pageNum >= 1 && pageNum <= maxPages) {
+        currentPage = pageNum;
+        fetchPDFs(currentPage);
+      } else {
+        alert("Invalid page number");
+      }
+    }
 
-    // Fetch the first page of PDFs when the page loads
-    window.onload = () => fetchPDFs(currentPage);
+    // Initialize: Load first page
+    fetchPDFs(currentPage);
   </script>
 </body>
 </html>
