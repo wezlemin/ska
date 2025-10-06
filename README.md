@@ -7,12 +7,12 @@ This project provides the front-end for accessing files on ChemSheets. The backe
 
 1. **Check Your Own Chemsheets File:**
    * Get the Chemsheets file you're looking for on the Ska website.
-   * Note the **date** the file was created (it's written on the file itself usually).
+   * Note the file name.
 
 2. **Use Ska to Find Your File:**
    * Visit [Ska](https://wezlemin.github.io/ska/).
-   * Enter numbers in the box at the bottom of the page. You'll need to experiment with different combinations to locate the exact date.
-   * Once you've found the right date, search for the file by its **name**.
+   * Enter the file name.
+   * That's all!
 
 ## API Endpoint
 
