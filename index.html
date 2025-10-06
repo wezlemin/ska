@@ -5,94 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDF Viewer</title>
   <style>
-/* Global styling */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-}
+    /* Global styling */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
 
-/* Container for PDFs */
-.pdf-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));  /* Adjust item width */
-    gap: 20px;  /* Space between items */
-    margin: 20px;
-}
+    /* Container for PDFs */
+    .pdf-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));  /* Adjust item width */
+        gap: 20px;  /* Space between items */
+        margin: 20px;
+    }
 
-/* Individual PDF card styling */
-.pdf-card {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 15px;
-    text-align: center;
-    cursor: pointer;
-}
+    /* Individual PDF card styling */
+    .pdf-card {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+    }
 
-/* Individual item image styling */
-.pdf-card img {
-    width: 100%;
-    height: auto;
-    border-radius: 5px;
-}
+    /* Individual item image styling */
+    .pdf-card img {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
+    }
 
-/* PDF file name styling */
-.pdf-card p {
-    font-size: 16px;
-    color: #333;
-    margin-top: 10px;
-}
+    /* PDF file name styling */
+    .pdf-card p {
+        font-size: 16px;
+        color: #333;
+        margin-top: 10px;
+    }
 
-/* Pagination styling */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px 0;
-}
+    /* Pagination styling */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+    }
 
-.pagination input[type="number"] {
-    width: 50px;
-    padding: 5px;
-    margin: 0 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    text-align: center;
-    font-size: 16px;
-}
+    .pagination input[type="number"] {
+        width: 50px;
+        padding: 5px;
+        margin: 0 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 16px;
+    }
 
-.pagination button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 5px 15px;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-}
+    .pagination button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+    }
 
-.pagination button:hover {
-    background-color: #0056b3;
-}
+    .pagination button:hover {
+        background-color: #0056b3;
+    }
 
-/* Loading indicator */
-.loading {
-    text-align: center;
-    font-size: 18px;
-    color: #007bff;
-}
+    /* Loading indicator */
+    .loading {
+        text-align: center;
+        font-size: 18px;
+        color: #007bff;
+    }
 
-/* Page information styling */
-.page-info {
-    font-size: 16px;
-    margin: 10px;
-    text-align: center;
-    color: #333;
-}
-
-
+    /* Page information styling */
+    .page-info {
+        font-size: 16px;
+        margin: 10px;
+        text-align: center;
+        color: #333;
+    }
   </style>
 </head>
 <body>
@@ -126,45 +124,54 @@ body {
       createPagination(); // Ensure pagination is created after fetching data
     }
 
-// Display PDFs
-async function displayPDFs(pdfs) {
-  const container = document.getElementById('pdf-list');
-  container.innerHTML = ''; // Clear previous content
+    // Display PDFs
+    async function displayPDFs(pdfs) {
+      const container = document.getElementById('pdf-list');
+      container.innerHTML = ''; // Clear previous content
 
-  if (pdfs.length === 0) {
-    container.innerHTML = "<p>No files found on this page.</p>";
-    return;
-  }
+      if (pdfs.length === 0) {
+        container.innerHTML = "<p>No files found on this page.</p>";
+        return;
+      }
 
-  pdfs.forEach(pdf => {
-    // Extract the file name from the guid.rendered URL
-    const fileName = getFileNameFromUrl(pdf.guid.rendered);
+      pdfs.forEach(pdf => {
+        // Extract the file name from the guid.rendered URL
+        const fileName = getFileNameFromUrl(pdf.guid.rendered);
 
-    const pdfItem = document.createElement('div');
-    pdfItem.classList.add('pdf-item');
+        const pdfItem = document.createElement('div');
+        pdfItem.classList.add('pdf-card');
 
-    // Use the provided default image for all files
-    const defaultThumbnail = 'https://image2url.com/images/1758150036537-c930c707-ac22-4dec-a483-5fb0f98c13e2.png';
+        // Default thumbnail for non-PDF files
+        const defaultThumbnail = 'https://i.ibb.co/C3y6ZRyt/image.png';
 
-    // Build the HTML structure for each item
-    pdfItem.innerHTML = `
-      <a href="${pdf.source_url}" target="_blank">
-        <img src="${defaultThumbnail}" alt="${fileName}" />
-      </a>
-      <p>${fileName}</p> <!-- Use the extracted file name -->
-    `;
+        // Determine if file is a PDF and get its thumbnail if available
+        let thumbnailUrl = defaultThumbnail; // Default thumbnail for non-PDF files
 
-    // Append the item to the container
-    container.appendChild(pdfItem);
-  });
-}
+        if (pdf.mime_type === 'application/pdf') {
+          // For PDFs, check if thumbnail exists
+          thumbnailUrl = pdf.media_details.sizes && pdf.media_details.sizes.thumbnail 
+                         ? pdf.media_details.sizes.thumbnail.source_url 
+                         : 'https://i.ibb.co/C3y6ZRyt/image.png'; // Fallback PDF thumbnail
+        }
 
-// Helper function to extract the file name from the URL
-function getFileNameFromUrl(url) {
-  const urlParts = url.split('/');
-  return urlParts[urlParts.length - 1]; // Get the last part of the URL, which is the file name
-}
+        // Build the HTML structure for each item
+        pdfItem.innerHTML = `
+          <a href="${pdf.source_url}" target="_blank">
+            <img src="${thumbnailUrl}" alt="${fileName}" />
+          </a>
+          <p>${fileName}</p> <!-- Use the extracted file name -->
+        `;
 
+        // Append the item to the container
+        container.appendChild(pdfItem);
+      });
+    }
+
+    // Helper function to extract the file name from the URL
+    function getFileNameFromUrl(url) {
+      const urlParts = url.split('/');
+      return urlParts[urlParts.length - 1]; // Get the last part of the URL, which is the file name
+    }
 
     // Add pagination controls
     function createPagination() {
