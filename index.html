@@ -5,92 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDF Viewer</title>
   <style>
-    /* Global styling */
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-    }
+/* Global styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
 
-    /* Container for PDFs */
-    .pdf-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        margin: 20px;
-    }
+/* Container for PDFs */
+.pdf-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;  /* Distribute the cards evenly */
+    margin: 20px;
+    gap: 20px; /* Space between items */
+}
 
-    /* Individual PDF card styling */
+/* Individual PDF card styling */
+.pdf-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: calc(33.333% - 20px); /* 3 items per row (33.333% width) with spacing */
+    margin: 10px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+/* Optional: For small screens, we can make it responsive (2 items per row) */
+@media (max-width: 768px) {
     .pdf-card {
-        background-color: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        width: 200px;
-        margin: 10px;
-        padding: 15px;
-        text-align: center;
-        cursor: pointer;
+        width: calc(50% - 20px); /* 2 items per row on smaller screens */
     }
+}
 
-    .pdf-card img {
-        width: 100%;
-        height: auto;
-        border-radius: 5px;
+/* Optional: For very small screens (mobile), one item per row */
+@media (max-width: 480px) {
+    .pdf-card {
+        width: 100%; /* 1 item per row on mobile */
     }
+}
 
-    .pdf-card p {
-        font-size: 16px;
-        color: #333;
-        margin-top: 10px;
-    }
+/* Individual item image styling */
+.pdf-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
 
-    /* Pagination styling */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 20px 0;
-    }
+/* PDF file name styling */
+.pdf-card p {
+    font-size: 16px;
+    color: #333;
+    margin-top: 10px;
+}
 
-    .pagination input[type="number"] {
-        width: 50px;
-        padding: 5px;
-        margin: 0 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        text-align: center;
-        font-size: 16px;
-    }
+/* Pagination styling */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
 
-    .pagination button {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        padding: 5px 15px;
-        border-radius: 5px;
-        font-size: 14px;
-        cursor: pointer;
-    }
+.pagination input[type="number"] {
+    width: 50px;
+    padding: 5px;
+    margin: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 16px;
+}
 
-    .pagination button:hover {
-        background-color: #0056b3;
-    }
+.pagination button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+}
 
-    /* Loading indicator */
-    .loading {
-        text-align: center;
-        font-size: 18px;
-        color: #007bff;
-    }
+.pagination button:hover {
+    background-color: #0056b3;
+}
 
-    /* Page information styling */
-    .page-info {
-        font-size: 16px;
-        margin: 10px;
-        text-align: center;
-        color: #333;
-    }
+/* Loading indicator */
+.loading {
+    text-align: center;
+    font-size: 18px;
+    color: #007bff;
+}
+
+/* Page information styling */
+.page-info {
+    font-size: 16px;
+    margin: 10px;
+    text-align: center;
+    color: #333;
+}
+
   </style>
 </head>
 <body>
