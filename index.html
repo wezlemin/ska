@@ -45,6 +45,13 @@
         margin-top: 10px;
     }
 
+    /* Date styling */
+    .pdf-card .date {
+        font-size: 14px;
+        color: #777;
+        margin-top: 5px;
+    }
+
     /* Pagination styling */
     .pagination {
         display: flex;
@@ -138,6 +145,9 @@
         // Extract the file name from the guid.rendered URL
         const fileName = getFileNameFromUrl(pdf.guid.rendered);
 
+        // Format the date (ISO 8601 to human-readable)
+        const formattedDate = formatDate(pdf.date);
+
         const pdfItem = document.createElement('div');
         pdfItem.classList.add('pdf-card');
 
@@ -160,6 +170,7 @@
             <img src="${thumbnailUrl}" alt="${fileName}" />
           </a>
           <p>${fileName}</p> <!-- Use the extracted file name -->
+          <p class="date">${formattedDate}</p> <!-- Display the formatted date -->
         `;
 
         // Append the item to the container
@@ -171,6 +182,13 @@
     function getFileNameFromUrl(url) {
       const urlParts = url.split('/');
       return urlParts[urlParts.length - 1]; // Get the last part of the URL, which is the file name
+    }
+
+    // Helper function to format the date from ISO 8601 to a human-readable format
+    function formatDate(isoDate) {
+      const date = new Date(isoDate);
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
     }
 
     // Add pagination controls
