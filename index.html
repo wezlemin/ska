@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Viewer</title>
+  <title>PDF Viewer - Wezlemin</title>
   <style>
     /* Global styling */
     body {
@@ -11,6 +11,27 @@
         margin: 0;
         padding: 0;
         background-color: #f4f4f4;
+    }
+
+    /* Title container */
+    .header {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 32px;
+    }
+
+    .header p {
+        font-size: 16px;
+        color: #333;
+    }
+
+
+    .header .view-source-btn:hover {
+        background-color: #0056b3;
     }
 
     /* Container for PDFs */
@@ -101,9 +122,24 @@
   </style>
 </head>
 <body>
+<!-- Header with title, "Wezlemin" link, and "View Source" button -->
+<div class="header">
+    <h1>PDF Viewer</h1>
+    <p>
+        Created by 
+        <a href="https://github.com/wezlemin" target="_blank" style="color: #333; text-decoration: none;">wezlemin</a> 
+        | 
+        <a href="https://github.com/wezlemin/ska" target="_blank" style="color: #333; text-decoration: none;">View Source</a>
+    </p>
+</div>
+
+    <!-- Add a search bar above the file container -->
+    <input type="text" id="search-bar" placeholder="Search for files..." oninput="searchFiles()" style="width: 100%; padding: 10px; margin: 20px 0; border-radius: 5px;">
+
   <div class="pdf-container" id="pdf-list"></div>
   <div class="pagination" id="pagination-container"></div>
   <div class="page-info" id="page-info"></div>
+  
 
   <script>
     const perPage = 10;
@@ -111,123 +147,129 @@
     let maxPages = 1;
     let totalItems = 0;
 
-    // Fetch data from API
+    let searchQuery = ''; // Store search query
+
+    // Fetch data from API with optional search query
     async function fetchPDFs(page = 1) {
-      const url = `https://www.scisheets.co.uk/wp-json/wp/v2/media?per_page=${perPage}&page=${page}`;
-      const response = await fetch(url);
+        const url = `https://www.scisheets.co.uk/wp-json/wp/v2/media?per_page=${perPage}&page=${page}&search=${searchQuery}`;
+        const response = await fetch(url);
 
-      // Retrieve the total count from the response headers
-      const total = response.headers.get('X-WP-Total');
-      totalItems = parseInt(total, 10);
+        // Retrieve the total count from the response headers
+        const total = response.headers.get('X-WP-Total');
+        totalItems = parseInt(total, 10);
 
-      // Update the maxPages based on the total items
-      maxPages = Math.ceil(totalItems / perPage);
+        // Update the maxPages based on the total items
+        maxPages = Math.ceil(totalItems / perPage);
 
-      const data = await response.json();
+        const data = await response.json();
 
-      // Handle the pagination and display of PDFs
-      displayPDFs(data);
-      updatePageInfo();
-      createPagination(); // Ensure pagination is created after fetching data
+        // Handle the pagination and display of PDFs
+        displayPDFs(data);
+        updatePageInfo();
+        createPagination(); // Ensure pagination is created after fetching data
     }
 
     // Display PDFs
     async function displayPDFs(pdfs) {
-      const container = document.getElementById('pdf-list');
-      container.innerHTML = ''; // Clear previous content
+        const container = document.getElementById('pdf-list');
+        container.innerHTML = ''; // Clear previous content
 
-      if (pdfs.length === 0) {
-        container.innerHTML = "<p>No files found on this page.</p>";
-        return;
-      }
-
-      pdfs.forEach(pdf => {
-        // Extract the file name from the guid.rendered URL
-        const fileName = getFileNameFromUrl(pdf.guid.rendered);
-
-        // Format the date (ISO 8601 to human-readable)
-        const formattedDate = formatDate(pdf.date);
-
-        const pdfItem = document.createElement('div');
-        pdfItem.classList.add('pdf-card');
-
-        // Default thumbnail for non-PDF files
-        const defaultThumbnail = 'https://i.ibb.co/C3y6ZRyt/image.png';
-
-        // Determine if file is a PDF and get its thumbnail if available
-        let thumbnailUrl = defaultThumbnail; // Default thumbnail for non-PDF files
-
-        if (pdf.mime_type === 'application/pdf') {
-          // For PDFs, check if thumbnail exists
-          thumbnailUrl = pdf.media_details.sizes && pdf.media_details.sizes.thumbnail 
-                         ? pdf.media_details.sizes.thumbnail.source_url 
-                         : 'https://i.ibb.co/C3y6ZRyt/image.png'; // Fallback PDF thumbnail
+        if (pdfs.length === 0) {
+            container.innerHTML = "<p>No files found matching your search.</p>";
+            return;
         }
 
-        // Build the HTML structure for each item
-        pdfItem.innerHTML = `
-          <a href="${pdf.source_url}" target="_blank">
-            <img src="${thumbnailUrl}" alt="${fileName}" />
-          </a>
-          <p>${fileName}</p> <!-- Use the extracted file name -->
-          <p class="date">${formattedDate}</p> <!-- Display the formatted date -->
-        `;
+        pdfs.forEach(pdf => {
+            // Extract the file name from the guid.rendered URL
+            const fileName = getFileNameFromUrl(pdf.guid.rendered);
 
-        // Append the item to the container
-        container.appendChild(pdfItem);
-      });
+            const pdfItem = document.createElement('div');
+            pdfItem.classList.add('pdf-card');
+
+            // Default thumbnail for non-PDF files
+            const defaultThumbnail = 'https://i.ibb.co/C3y6ZRyt/image.png';
+
+            // Determine if file is a PDF and get its thumbnail if available
+            let thumbnailUrl = defaultThumbnail; // Default thumbnail for non-PDF files
+
+            if (pdf.mime_type === 'application/pdf') {
+                // For PDFs, check if thumbnail exists
+                thumbnailUrl = pdf.media_details.sizes && pdf.media_details.sizes.thumbnail
+                    ? pdf.media_details.sizes.thumbnail.source_url
+                    : 'https://i.ibb.co/C3y6ZRyt/image.png'; // Fallback PDF thumbnail
+            }
+
+            // Build the HTML structure for each item
+            pdfItem.innerHTML = `
+                <a href="${pdf.source_url}" target="_blank">
+                    <img src="${thumbnailUrl}" alt="${fileName}" />
+                </a>
+                <p>${fileName}</p> <!-- Use the extracted file name -->
+                <small>Created: ${formatDate(pdf.date)}</small> <!-- Display file creation date -->
+            `;
+
+            // Append the item to the container
+            container.appendChild(pdfItem);
+        });
     }
 
     // Helper function to extract the file name from the URL
     function getFileNameFromUrl(url) {
-      const urlParts = url.split('/');
-      return urlParts[urlParts.length - 1]; // Get the last part of the URL, which is the file name
+        const urlParts = url.split('/');
+        return urlParts[urlParts.length - 1]; // Get the last part of the URL, which is the file name
     }
 
-    // Helper function to format the date from ISO 8601 to a human-readable format
-    function formatDate(isoDate) {
-      const date = new Date(isoDate);
-      const options = { year: 'numeric', month: 'short', day: 'numeric' };
-      return date.toLocaleDateString('en-US', options);
+    // Helper function to format the date (e.g., 2023-02-26T16:00:58 -> February 26, 2023)
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString(undefined, options);
+    }
+
+    // Function to handle the search input
+    function searchFiles() {
+        searchQuery = document.getElementById('search-bar').value.trim().toLowerCase();
+        currentPage = 1; // Reset to the first page when searching
+        fetchPDFs(currentPage); // Fetch filtered files
     }
 
     // Add pagination controls
     function createPagination() {
-      const paginationContainer = document.getElementById('pagination-container');
-      paginationContainer.innerHTML = `
-        <button onclick="changePage('prev')">Previous</button>
-        <input type="number" id="page-input" value="${currentPage}" min="1" max="${maxPages}" onchange="goToPage()" />
-        <button onclick="changePage('next')">Next</button>
-      `;
+        const paginationContainer = document.getElementById('pagination-container');
+        paginationContainer.innerHTML = `
+            <button onclick="changePage('prev')">Previous</button>
+            <input type="number" id="page-input" value="${currentPage}" min="1" max="${maxPages}" onchange="goToPage()" />
+            <button onclick="changePage('next')">Next</button>
+        `;
     }
 
     // Update page info (display total pages and current page)
     function updatePageInfo() {
-      const pageInfo = document.getElementById('page-info');
-      pageInfo.innerHTML = `Page ${currentPage} of ${maxPages} (Total Items: ${totalItems})`;
+        const pageInfo = document.getElementById('page-info');
+        pageInfo.innerHTML = `Page ${currentPage} of ${maxPages} (Total Items: ${totalItems})`;
     }
 
     // Change page (Previous/Next)
     function changePage(direction) {
-      if (direction === 'prev' && currentPage > 1) {
-        currentPage--;
-      } else if (direction === 'next' && currentPage < maxPages) {
-        currentPage++;
-      }
-      document.getElementById('page-input').value = currentPage;
-      fetchPDFs(currentPage);
+        if (direction === 'prev' && currentPage > 1) {
+            currentPage--;
+        } else if (direction === 'next' && currentPage < maxPages) {
+            currentPage++;
+        }
+        document.getElementById('page-input').value = currentPage;
+        fetchPDFs(currentPage);
     }
 
     // Go to a specific page
     function goToPage() {
-      const inputPage = document.getElementById('page-input').value;
-      const pageNum = parseInt(inputPage);
-      if (pageNum >= 1 && pageNum <= maxPages) {
-        currentPage = pageNum;
-        fetchPDFs(currentPage);
-      } else {
-        alert("Invalid page number");
-      }
+        const inputPage = document.getElementById('page-input').value;
+        const pageNum = parseInt(inputPage);
+        if (pageNum >= 1 && pageNum <= maxPages) {
+            currentPage = pageNum;
+            fetchPDFs(currentPage);
+        } else {
+            alert("Invalid page number");
+        }
     }
 
     // Initialize: Load first page
