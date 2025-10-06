@@ -1,8 +1,32 @@
-# ska
-front-end for all the files on chemsheets
 
-fix your website chemsheets, people pay for your stuff when it's easily accessible (you can literally ask chatgpt)
+# Ska - Front-End for Chemsheets/Scisheets
 
-back-end: scisheets.co.uk/wp-json/wp/v2/media?per_page=(1-100)&page=(1-302)
+This project provides the front-end for accessing files on ChemSheets. The backend API can be used to retrieve media files, but there are concerns regarding the accessibility of paid content. It is suggested that better security measures be implemented to prevent unauthorised access.
 
-takedown req: wezlemington@outlook.com
+## How to Use
+
+1. **Check Your Own Chemsheets File:**
+   * Get the Chemsheets file you're looking for on the Ska website.
+   * Note the **date** the file was created (it's written on the file itself usually).
+
+2. **Use Ska to Find Your File:**
+   * Visit [Ska](https://wezlemin.github.io/ska/).
+   * Enter numbers in the box at the bottom of the page. You'll need to experiment with different combinations to locate the exact date.
+   * Once you've found the right date, search for the file by its **name**.
+
+## API Endpoint
+
+To access media files, use the following endpoint:
+
+```
+https://scisheets.co.uk/wp-json/wp/v2/media?per_page=(1-100)&page=(1-302)
+```
+
+* **per_page**: Number of files per page (1-100)
+* **page**: Page number (1-302)
+
+## Takedown Requests
+
+For takedown requests, contact:
+
+**Email**: [wezlemington@outlook.com](mailto:wezlemington@outlook.com)
