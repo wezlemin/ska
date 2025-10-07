@@ -7,8 +7,8 @@ This project provides the front-end for accessing files on [Chemsheets/Scisheets
 ## How to Use
 
 1. **Check Your Own Chemsheets File:**
-   * Get the Chemsheets file you're looking for on the Ska website.
-   * Note the file name.
+   * Get the Chemsheets file you have.
+   * Note its file name.
 
 2. **Use Ska to Find Your File:**
    * Visit [Ska](https://wezlemin.github.io/ska/).
