@@ -2,7 +2,7 @@
 
 # Ska - Front-End for Chemsheets/Scisheets
 
-This project provides the front-end for accessing files on ChemSheets. The backend API can be used to retrieve media files, but there are concerns regarding the accessibility of paid content. It is suggested that better security measures be implemented to prevent unauthorised access.
+This project provides the front-end for accessing files on [Chemsheets/Scisheets](https://www.scisheets.co.uk/). The backend API can be used to retrieve media files, but there are concerns regarding the accessibility of paid content. It is suggested that better security measures be implemented to prevent unauthorised access.
 
 ## How to Use
 
