@@ -18,11 +18,11 @@ This project provides the front-end for accessing files on [Chemsheets/Scisheets
 To access media files on Scisheets, use the following endpoint:
 
 ```
-https://scisheets.co.uk/wp-json/wp/v2/media?per_page=(1-100)&page=(1-308)
+https://scisheets.co.uk/wp-json/wp/v2/media?per_page=(1-100)&page=(1-309)
 ```
 
 * **per_page**: Number of files per page (1-100)
-* **page**: Page number (1-308)
+* **page**: Page number (1-309)
 
 To access media files on EPP, use the following endpoint:
 
