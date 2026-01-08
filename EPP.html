@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Paper Practice PDF Viewer</title>
+  <style>
+    /* Global styling */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+
+    /* Title container */
+    .header {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 32px;
+    }
+
+    .header p {
+        font-size: 16px;
+        color: #333;
+    }
+
+
+    .header .view-source-btn:hover {
+        background-color: #0056b3;
+    }
+    
+    .search-container {
+  margin: 20px;
+}
+
+#search-bar {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid black;
+  box-sizing: border-box;
+}
+
+
+    /* Container for PDFs */
+    .pdf-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));  /* Adjust item width */
+        gap: 20px;  /* Space between items */
+        margin: 20px;
+    }
+
+    /* Individual PDF card styling */
+    .pdf-card {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    /* Individual item image styling */
+    .pdf-card img {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
+    }
+
+    /* PDF file name styling */
+    .pdf-card p {
+        font-size: 16px;
+        color: #333;
+        margin-top: 10px;
+    }
+
+    /* Date styling */
+    .pdf-card .date {
+        font-size: 14px;
+        color: #777;
+        margin-top: 5px;
+    }
+
+    /* Pagination styling */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+    .pagination input[type="number"] {
+        width: 50px;
+        padding: 5px;
+        margin: 0 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .pagination button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .pagination button:hover {
+        background-color: #0056b3;
+    }
+
+    /* Loading indicator */
+    .loading {
+        text-align: center;
+        font-size: 18px;
+        color: #007bff;
+    }
+
+    /* Page information styling */
+    .page-info {
+        font-size: 16px;
+        margin: 10px;
+        text-align: center;
+        color: #333;
+    }
+  </style>
+
+  <script>
+    const perPage = 10;
+    let currentPage = 1;
+    let maxPages = 1;
+    let totalItems = 0;
+
+    let searchQuery = ''; // Store search query
+
+    // Fetch data from API with optional search query
+    async function fetchPDFs(page = 1) {
+        const url = `https://www.exampaperspractice.co.uk/wp-json/wp/v2/media?per_page=${perPage}&page=${page}&search=${searchQuery}`;
+        const response = await fetch(url);
+
+        // Retrieve the total count from the response headers
+        const total = response.headers.get('X-WP-Total');
+        totalItems = parseInt(total, 10);
+
+        // Update the maxPages based on the total items
+        maxPages = Math.ceil(totalItems / perPage);
+
+        const data = await response.json();
+
+        // Handle the pagination and display of PDFs
+        displayPDFs(data);
+        updatePageInfo();
+        createPagination(); // Ensure pagination is created after fetching data
+    }
+
+    // Display PDFs
+    async function displayPDFs(pdfs) {
+        const container = document.getElementById('pdf-list');
+        container.innerHTML = ''; // Clear previous content
+
+        if (pdfs.length === 0) {
+            container.innerHTML = "<p>No files found matching your search.</p>";
+            return;
+        }
+
+        pdfs.forEach(pdf => {
+            // Extract the file name from the guid.rendered URL
+            const fileName = getFileNameFromUrl(pdf.guid.rendered);
+
+            const pdfItem = document.createElement('div');
+            pdfItem.classList.add('pdf-card');
+
+            // Default thumbnail for non-PDF files
+            const defaultThumbnail = 'https://i.ibb.co/C3y6ZRyt/image.png';
+
+            // Determine if file is a PDF and get its thumbnail if available
+            let thumbnailUrl = defaultThumbnail; // Default thumbnail for non-PDF files
+
+            if (pdf.mime_type === 'application/pdf') {
+                // For PDFs, check if thumbnail exists
+                thumbnailUrl = pdf.media_details.sizes && pdf.media_details.sizes.thumbnail
+                    ? pdf.media_details.sizes.thumbnail.source_url
+                    : 'https://i.ibb.co/C3y6ZRyt/image.png'; // Fallback PDF thumbnail
+            }
+
+            // Build the HTML structure for each item
+            pdfItem.innerHTML = `
+                <a href="${pdf.source_url}" target="_blank">
+                    <img src="${thumbnailUrl}" alt="${fileName}" />
+                </a>
+                <p>${fileName}</p> <!-- Use the extracted file name -->
+                <small>Created: ${formatDate(pdf.date)}</small> <!-- Display file creation date -->
+            `;
+
+            // Append the item to the container
+            container.appendChild(pdfItem);
+        });
+    }
+
+    // Helper function to extract the file name from the URL
+    function getFileNameFromUrl(url) {
+        const urlParts = url.split('/');
+        return urlParts[urlParts.length - 1]; // Get the last part of the URL, which is the file name
+    }
+
+    // Helper function to format the date (e.g., 2023-02-26T16:00:58 -> February 26, 2023)
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString(undefined, options);
+    }
+
+    // Function to handle the search input
+    function searchFiles() {
+        searchQuery = document.getElementById('search-bar').value.trim().toLowerCase();
+        currentPage = 1; // Reset to the first page when searching
+        fetchPDFs(currentPage); // Fetch filtered files
+    }
+
+    // Add pagination controls
+    function createPagination() {
+        const paginationContainer = document.getElementById('pagination-container');
+        paginationContainer.innerHTML = `
+            <button onclick="changePage('prev')">Previous</button>
+            <input type="number" id="page-input" value="${currentPage}" min="1" max="${maxPages}" onchange="goToPage()" />
+            <button onclick="changePage('next')">Next</button>
+        `;
+    }
+
+    // Update page info (display total pages and current page)
+    function updatePageInfo() {
+        const pageInfo = document.getElementById('page-info');
+        pageInfo.innerHTML = `Page ${currentPage} of ${maxPages} (Total Items: ${totalItems})`;
+    }
+
+    // Change page (Previous/Next)
+    function changePage(direction) {
+        if (direction === 'prev' && currentPage > 1) {
+            currentPage--;
+        } else if (direction === 'next' && currentPage < maxPages) {
+            currentPage++;
+        }
+        document.getElementById('page-input').value = currentPage;
+        fetchPDFs(currentPage);
+    }
+
+    // Go to a specific page
+    function goToPage() {
+        const inputPage = document.getElementById('page-input').value;
+        const pageNum = parseInt(inputPage);
+        if (pageNum >= 1 && pageNum <= maxPages) {
+            currentPage = pageNum;
+            fetchPDFs(currentPage);
+        } else {
+            alert("Invalid page number");
+        }
+    }
+
+    // Initialize: Load first page
+    fetchPDFs(currentPage);
+  </script>
+</head>
+
+<body>
+  <!-- Header with title, "Wezlemin" link, and "View Source" button -->
+  <div class="header">
+    <h1>Exam Paper Practice PDF Viewer</h1>
+    <p>
+      Created by 
+      <a href="https://github.com/wezlemin" target="_blank" style="color: #333; text-decoration: none;">wezlemin</a> 
+      | 
+      <a href="https://github.com/wezlemin/ska-epp" target="_blank" style="color: #333; text-decoration: none;">View Source</a>
+    </p>
+  </div>
+
+  <!-- ✅ Proper search bar container -->
+  <div class="search-container">
+    <input type="text" id="search-bar" placeholder="Search for files..." oninput="searchFiles()">
+  </div>
+
+  <!-- File grid -->
+  <div class="pdf-container" id="pdf-list"></div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination-container"></div>
+
+  <!-- Page info -->
+  <div class="page-info" id="page-info"></div>
+</body>
