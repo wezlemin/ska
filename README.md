@@ -30,8 +30,8 @@ To access media files on EPP, use the following endpoint:
 https://www.exampaperspractice.co.uk/wp-json/wp/v2/media?per_page=(1-100)&page=(1-3976)
 ```
 
-* **per_page**: Number of files per page (1-3976)
-* **page**: Page number (1-3976)
+* **per_page**: Number of files per page (1-100)
+* **page**: Page number (1-4253)
 
 ## Takedown Requests
 
