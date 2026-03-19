@@ -27,7 +27,7 @@ https://scisheets.co.uk/wp-json/wp/v2/media?per_page=(1-100)&page=(1-309)
 To access media files on EPP, use the following endpoint:
 
 ```
-https://www.exampaperspractice.co.uk/wp-json/wp/v2/media?per_page=(1-100)&page=(1-3976)
+https://www.exampaperspractice.co.uk/wp-json/wp/v2/media?per_page=(1-100)&page=(1-4253)
 ```
 
 * **per_page**: Number of files per page (1-100)
