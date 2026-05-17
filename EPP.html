@@ -142,95 +142,69 @@
 
     let searchQuery = ''; // Store search query
 
-async function fetchPDFs(page = 1) {
+    // Fetch data from API with optional search query
+    async function fetchPDFs(page = 1) {
+        const url = `https://www.exampaperspractice.co.uk/wp-json/wp/v2/media?per_page=${perPage}&page=${page}&search=${searchQuery}`;
+        const response = await fetch(url);
 
-    const url =
-      `https://www.examqa.com/wp-json/wp/v2/media?per_page=${perPage}&page=${page}&search=${searchQuery}`;
+        // Retrieve the total count from the response headers
+        const total = response.headers.get('X-WP-Total');
+        totalItems = parseInt(total, 10);
 
-    // Different proxy
-    const proxy =
-      "https://api.allorigins.win/raw?url=";
-
-    try {
-
-        const response = await fetch(
-            proxy + encodeURIComponent(url)
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        // Update the maxPages based on the total items
+        maxPages = Math.ceil(totalItems / perPage);
 
         const data = await response.json();
 
-        console.log(data);
-
-        // IMPORTANT FIX
-        if (!Array.isArray(data)) {
-            throw new Error("API did not return an array");
-        }
-
-        totalItems = data.length;
-
+        // Handle the pagination and display of PDFs
         displayPDFs(data);
-
-    } catch (err) {
-
-        console.error(err);
-
-        document.getElementById('pdf-list').innerHTML =
-          `<p>Error loading files:<br>${err.message}</p>`;
-    }
-}
-
-function displayPDFs(pdfs) {
-
-    const container =
-      document.getElementById('pdf-list');
-
-    container.innerHTML = '';
-
-    if (pdfs.length === 0) {
-        container.innerHTML =
-          "<p>No files found.</p>";
-        return;
+        updatePageInfo();
+        createPagination(); // Ensure pagination is created after fetching data
     }
 
-    pdfs.forEach(pdf => {
+    // Display PDFs
+    async function displayPDFs(pdfs) {
+        const container = document.getElementById('pdf-list');
+        container.innerHTML = ''; // Clear previous content
 
-        const fileName =
-          pdf.guid.rendered.split('/').pop();
-
-        const pdfItem =
-          document.createElement('div');
-
-        pdfItem.classList.add('pdf-card');
-
-        let thumbnailUrl =
-          'https://i.ibb.co/C3y6ZRyt/image.png';
-
-        if (
-          pdf.mime_type === 'application/pdf' &&
-          pdf.media_details &&
-          pdf.media_details.sizes &&
-          pdf.media_details.sizes.thumbnail
-        ) {
-
-            thumbnailUrl =
-              pdf.media_details.sizes.thumbnail.source_url;
+        if (pdfs.length === 0) {
+            container.innerHTML = "<p>No files found matching your search.</p>";
+            return;
         }
 
-        pdfItem.innerHTML = `
-            <a href="${pdf.source_url}" target="_blank">
-                <img src="${thumbnailUrl}">
-            </a>
+        pdfs.forEach(pdf => {
+            // Extract the file name from the guid.rendered URL
+            const fileName = getFileNameFromUrl(pdf.guid.rendered);
 
-            <p>${fileName}</p>
-        `;
+            const pdfItem = document.createElement('div');
+            pdfItem.classList.add('pdf-card');
 
-        container.appendChild(pdfItem);
-    });
-}
+            // Default thumbnail for non-PDF files
+            const defaultThumbnail = 'https://i.ibb.co/C3y6ZRyt/image.png';
+
+            // Determine if file is a PDF and get its thumbnail if available
+            let thumbnailUrl = defaultThumbnail; // Default thumbnail for non-PDF files
+
+            if (pdf.mime_type === 'application/pdf') {
+                // For PDFs, check if thumbnail exists
+                thumbnailUrl = pdf.media_details.sizes && pdf.media_details.sizes.thumbnail
+                    ? pdf.media_details.sizes.thumbnail.source_url
+                    : 'https://i.ibb.co/C3y6ZRyt/image.png'; // Fallback PDF thumbnail
+            }
+
+            // Build the HTML structure for each item
+            pdfItem.innerHTML = `
+                <a href="${pdf.source_url}" target="_blank">
+                    <img src="${thumbnailUrl}" alt="${fileName}" />
+                </a>
+                <p>${fileName}</p> <!-- Use the extracted file name -->
+                <small>Created: ${formatDate(pdf.date)}</small> <!-- Display file creation date -->
+            `;
+
+            // Append the item to the container
+            container.appendChild(pdfItem);
+        });
+    }
 
     // Helper function to extract the file name from the URL
     function getFileNameFromUrl(url) {
